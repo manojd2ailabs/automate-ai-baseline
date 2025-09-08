@@ -1,0 +1,126 @@
+{
+  "agents": {
+    "research_supervisor": {
+      "id": "research_supervisor",
+      "name": "Research Supervisor Agent",
+      "description": "Delegates queries to appropriate agents",
+      "class_path": "agents.agent_executor.ResearchSupervisorAgent",
+      "capabilities": ["routing", "delegation"],
+      "coordinates_agents": ["log_analysis_agent", "test_case_agent", "test_script_agent"],
+      "available_tools": [],
+      "supported_file_types": [".txt", ".log", ".pcap"],
+      "version": "1.0.0",
+      "status": "active"
+    },
+    "log_analysis_agent": {
+      "id": "log_analysis_agent",
+      "name": "Log Analysis Agent",
+      "description": "Analyzes logs and PCAPs for security issues",
+      "class_path": "agents.agent_executor.LogAnalysisAgent",
+      "capabilities": ["log_analysis"],
+      "supported_file_types": [".pcap", ".txt", ".log"],
+      "available_tools": [
+        {
+          "name": "parse_file",
+          "description": "Parse file and return structured text path",
+          "inputs": [
+            { "name": "file_path", "type": "string" }
+          ],
+          "outputs": [
+            { "name": "parsed_path", "type": "string" }
+          ]
+        },
+        {
+          "name": "create_vector_store",
+          "description": "Create vector store from parsed file",
+          "inputs": [
+            { "name": "parsed_path", "type": "string" }
+          ],
+          "outputs": [
+            { "name": "vector_store_path", "type": "string" }
+          ]
+        },
+        {
+          "name": "query_rag_store",
+          "description": "Create vector store from parsed file",
+          "inputs": [
+            { "name": "brief", "type": "string" },
+            { "name": "vector_store_path", "type": "string" }
+
+          ],
+          "outputs": [
+            { "name": "results", "type": "list" }
+          ]
+        }
+      ],
+      "version": "1.0.0",
+      "status": "active"
+    },
+    "test_case_agent": {
+      "id": "test_case_agent",
+      "name": "Test Case Agent",
+      "description": "Generates test cases based on logs or descriptions",
+      "class_path": "agents.agent_executor.TestCaseAgent",
+      "capabilities": ["test_generation"],
+      "supported_file_types": [".txt", ".yaml"],
+      "available_tools": [
+        {
+          "name": "parse_file",
+          "description": "Parse file and return structured text path",
+          "inputs": [
+            { "name": "file_path", "type": "string" }
+          ],
+          "outputs": [
+            { "name": "parsed_path", "type": "string" }
+          ]
+        },
+        {
+          "name": "create_vector_store",
+          "description": "Create vector store from parsed file",
+          "inputs": [
+            { "name": "parsed_path", "type": "string" }
+          ],
+          "outputs": [
+            { "name": "vector_store_path", "type": "string" }
+          ]
+        },
+        {
+          "name": "query_rag_store",
+          "description": "Create vector store from parsed file",
+          "inputs": [
+            { "name": "brief", "type": "string" },
+            { "name": "vector_store_path", "type": "string" }
+
+          ],
+          "outputs": [
+            { "name": "results", "type": "list" }
+          ]
+        }
+      ],
+      "version": "1.0.0",
+      "status": "active"
+    },
+    "test_script_agent": {
+      "id": "test_script_agent",
+      "name": "Test Script Agent",
+      "description": "Generates test scripts from a text description, potentially after human review of the input.",
+      "class_path": "agents.agent_executor.TestScriptAgent",
+      "capabilities": ["test_script_generation"],
+      "supported_file_types": [".txt"],
+      "available_tools": [
+        {
+          "name": "generate_test_script",
+          "description": "Generates a test script from a text description.",
+          "inputs": [
+            { "name": "text_input", "type": "string" }
+          ],
+          "outputs": [
+            { "name": "result", "type": "dict" }
+          ]
+        }
+      ],
+      "version": "1.0.0",
+      "status": "active"
+    }
+  }
+}

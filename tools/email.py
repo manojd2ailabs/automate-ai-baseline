@@ -1,0 +1,213 @@
+from langchain_core.tools import tool
+from typing import List
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
+import smtplib
+import ssl
+import os
+import tempfile
+from datetime import datetime
+from tools.registry import register_tool
+from config import load_email_config
+ 
+ 
+def create_professional_email_body(query: str, response: str, filename: str = "") -> str:
+    """
+    Create a professional HTML email body with summary format.
+    """
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+ 
+    # Extract preview
+    response_preview = response[:300] + "..." if len(response) > 300 else response
+ 
+    # Determine analysis type
+    analysis_type = "Log Analysis"
+    if "pcap" in query.lower():
+        analysis_type = "Network Traffic Analysis"
+    elif "test" in query.lower():
+        analysis_type = "Test Case Generation"
+    elif "script" in query.lower():
+        analysis_type = "Script Generation"
+ 
+    # Return HTML template
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }}
+.container {{ max-width: 800px; margin: 0 auto; background-color: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden; }}
+.header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }}
+.header h1 {{ margin: 0; font-size: 28px; font-weight: bold; }}
+.header p {{ margin: 10px 0 0 0; opacity: 0.9; font-size: 14px; }}
+.content {{ padding: 30px; }}
+.info-card {{ background-color: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin: 20px 0; border-radius: 5px; }}
+.status-badge {{ display: inline-block; padding: 8px 16px; border-radius: 20px; font-weight: bold; margin: 10px 0; }}
+.status-green {{ background-color: #d4edda; color: #155724; }}
+.status-yellow {{ background-color: #fff3cd; color: #856404; }}
+.status-red {{ background-color: #f8d7da; color: #721c24; }}
+.query-section {{ background-color: #e3f2fd; border-radius: 8px; padding: 20px; margin: 20px 0; }}
+.response-preview {{ background-color: #f1f8e9; border-radius: 8px; padding: 20px; margin: 20px 0; }}
+.footer {{ background-color: #f8f9fa; padding: 20px; text-align: center; color: #666; border-top: 1px solid #dee2e6; }}
+.attachment-note {{ background-color: #fff3e0; border-left: 4px solid #ff9800; padding: 15px; margin: 20px 0; border-radius: 5px; }}
+h2 {{ color: #333; border-bottom: 2px solid #667eea; padding-bottom: 5px; }}
+h3 {{ color: #667eea; }}
+.divider {{ height: 1px; background: linear-gradient(to right, transparent, #667eea, transparent); margin: 30px 0; }}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🚀 LTTS - AgenticAI Analysis Report</h1>
+    <p>Generated at: {timestamp}</p>
+  </div>
+  <div class="content">
+    <h2>📊 {analysis_type.upper()} REPORT</h2>
+    <div class="info-card">
+      <h3>📁 File Information</h3>
+      <p><strong>File Name:</strong> {filename or "N/A"}</p>
+      <p><strong>Analysis Type:</strong> {analysis_type}</p>
+      <p><strong>Processing Time:</strong> {timestamp}</p>
+    </div>
+    <div class="divider"></div>
+    <div class="query-section">
+      <h3>🔍 ANALYSIS QUERY</h3>
+      <p><em>"{query}"</em></p>
+    </div>
+    <div class="response-preview">
+      <h3>📋 EXECUTIVE SUMMARY</h3>
+      <p>{response_preview}</p>
+      <div style="margin-top: 20px; padding: 15px; background-color: #e8f4f8; border-radius: 5px;">
+        <p><strong>Note:</strong> This is a summary view. The complete detailed analysis is in the attached file.</p>
+      </div>
+    </div>
+    <div class="attachment-note">
+      <h3>📎 ATTACHMENT INFORMATION</h3>
+      <p><strong>📄 Detailed Report:</strong> Provided in attached text file.</p>
+    </div>
+  </div>
+  <div class="footer">
+    <p><strong>AgenticAI - Intelligent Analysis Platform</strong></p>
+    <p>This report was generated automatically by our AI agents.</p>
+    <p><em>© 2025 LTTS - Larsen & Toubro Technology Services</em></p>
+  </div>
+</div>
+</body>
+</html>
+"""
+ 
+ 
+def create_attachment_content(query: str, response: str, filename: str = "") -> str:
+    """
+    Create detailed attachment content in professional format.
+    """
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    separator = "=" * 80
+ 
+    return f"""LTTS - AgenticAI Detailed Analysis Report
+{separator}
+Generated at: {timestamp}
+Report ID: AGENTIC-{datetime.now().strftime("%Y%m%d-%H%M%S")}
+ 
+ANALYSIS DETAILS
+{separator}
+File Name: {filename or "N/A"}
+Query Processed: {query}
+Processing Time: {timestamp}
+Agent System: Multi-Agent AI Analysis Platform
+ 
+COMPLETE ANALYSIS RESULTS
+{separator}
+ 
+{response}
+ 
+{separator}
+TECHNICAL INFORMATION
+{separator}
+- Analysis Engine: AgenticAI Multi-Agent System
+- Processing Method: Intelligent Agent Orchestration
+- Report Format: Comprehensive Analysis Output
+- Generated By: Automated AI Analysis Pipeline
+ 
+DISCLAIMER
+{separator}
+This report is AI-generated. Validate with experts before critical decisions.
+ 
+© 2025 LTTS - Larsen & Toubro Technology Services
+"""
+ 
+ 
+@tool
+def send_email(recipients: List[str], subject: str, body: str, query: str = "", filename: str = "") -> dict:
+    """
+    Enhanced email-sending tool with professional formatting and attachment capability.
+    """
+    try:
+        if isinstance(recipients, str):
+            recipients = [r.strip() for r in recipients.split(",") if r.strip()]
+        if not recipients:
+            return {"success": False, "error": "No valid recipients."}
+ 
+        # Load config
+        smtp_cfg = load_email_config()
+        smtp_server = smtp_cfg.get("smtp_server")
+        smtp_port = int(smtp_cfg.get("smtp_port", 587))
+        smtp_username = smtp_cfg.get("smtp_username")
+        smtp_password = smtp_cfg.get("smtp_password")
+        from_address = smtp_cfg.get("from_address", smtp_username)
+        use_tls = smtp_cfg.get("use_tls", True)
+ 
+        if not smtp_server or not smtp_username or not smtp_password:
+            return {"success": False, "error": "SMTP config missing."}
+ 
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = from_address
+        msg["To"] = ", ".join(recipients)
+ 
+        # Body
+        html_body = create_professional_email_body(query, body, filename)
+        text_body = f"""LTTS - AgenticAI Analysis Report
+Generated at: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+Query: {query}
+File: {filename or "N/A"}
+Summary: {body[:500]}...
+"""
+ 
+        msg.attach(MIMEText(text_body, "plain"))
+        msg.attach(MIMEText(html_body, "html"))
+ 
+        # Attachment
+        attachment_content = create_attachment_content(query, body, filename)
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8") as temp_file:
+            temp_file.write(attachment_content)
+            temp_path = temp_file.name
+ 
+        try:
+            with open(temp_path, "rb") as f:
+                part = MIMEBase("application", "octet-stream")
+                part.set_payload(f.read())
+                encoders.encode_base64(part)
+                filename_out = f"AgenticAI_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+                part.add_header("Content-Disposition", f"attachment; filename={filename_out}")
+                msg.attach(part)
+ 
+            context = ssl.create_default_context()
+            with smtplib.SMTP(smtp_server, smtp_port, timeout=30) as server:
+                if use_tls:
+                    server.starttls(context=context)
+                server.login(smtp_username, smtp_password)
+                server.send_message(msg)
+ 
+            return {"success": True, "message": f"Report email sent to {recipients}"}
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+ 
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+ 
+ 
+# Register with your registry
+register_tool("send_email", send_email)

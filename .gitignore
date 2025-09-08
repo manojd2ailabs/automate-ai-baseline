@@ -1,0 +1,27 @@
+# Ignore Python cache & virtual environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Output & intermediate files
+output_files/
+vector_stores/
+parsed_files/
+memories/
+
+# Logs
+*.log
+
+# System
+.DS_Store
+Thumbs.db
+
+# Credentials
+config/email_config.yml
