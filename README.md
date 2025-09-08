@@ -58,5 +58,5 @@ The system provides a **Streamlit-based UI** for interaction and coordination of
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/<your-username>/<repo-name>.git
-cd <repo-name>
+git clone https://github.com/Jaya-lang/Agentic-AI-Framework.git
+cd Agentic-AI-Framework
