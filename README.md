@@ -26,31 +26,33 @@ The system provides a **Streamlit-based UI** for interaction and coordination of
 
 ## ⚙️ Project Structure
 
-├── agents/ # Agent definitions (Supervisor, Sub-agents)
-│ ├── a2a_factory.py
-│ ├── a2a_system.py
-│ ├── agent_executor.py
-│ └── agent_cards.json
+```bash
+📦 Project Root
+├── agents/                  # Agent definitions (Supervisor & Sub-agents)
+│   ├── a2a_factory.py
+│   ├── a2a_system.py
+│   ├── agent_executor.py
+│   └── agent_cards.json
 │
-├── config/ # Configurations & prompts
-│ ├── prompts.yml
-│ ├── memory_config.py
-│ ├── config_paths.py
-│ └── log_patterns.py
+├── config/                  # Configuration files & prompt settings
+│   ├── prompts.yml
+│   ├── memory_config.py
+│   ├── config_paths.py
+│   └── log_patterns.py
 │
-├── graph/ # Research graph orchestration
-│ ├── research_graph.py
-│ └── research_state.py
+├── graph/                   # Research graph orchestration modules
+│   ├── research_graph.py
+│   └── research_state.py
 │
-├── tools/ # Tooling (parser, memory, registry)
-│ ├── parser.py
-│ ├── memory_tools.py
-│ └── registry.py
+├── tools/                   # Utilities (parser, memory, registry, etc.)
+│   ├── parser.py
+│   ├── memory_tools.py
+│   └── registry.py
 │
-├── main2.py # Streamlit entrypoint
-├── requirements.txt # Dependencies
-└── README.md
-
+├── main2.py                 # Streamlit application entry point
+├── requirements.txt         # Project dependencies
+└── README.md                # Documentation
+```
 
 ---
 
