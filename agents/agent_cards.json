@@ -121,6 +121,23 @@
       ],
       "version": "1.0.0",
       "status": "active"
-    }
+    },
+    "email_agent": {
+      "id": "email_agent",
+      "name": "Email Agent",
+      "description": "Sends email with findings if critical keywords are detected or user approves.",
+      "class_path": "agents.agent_executor.EmailAgent",
+      "capabilities": ["notification"],
+    "supported_file_types": [".txt", ".log", ".pcap"],
+    "available_tools": [
+      {
+        "name": "send_email",
+        "description": "Send email notification with findings",
+        "inputs": [{ "name": "findings", "type": "string" }],
+        "outputs": [{ "name": "status", "type": "string" }]
+      }
+    ],
+    "version": "1.0.0",
+    "status": "active"}
   }
 }

@@ -1,3 +1,22 @@
+"""
+Description:
+This module provides centralized management of agents and their metadata for the Agentic AI system. 
+It loads agent configurations from `agent_cards.json`, injects system prompts from `prompts.yml`.
+
+The global registry (`_global_registry`) allows supervisor agents and factories to:
+- Discover active agents
+- Retrieve metadata via AgentCard
+- Load corresponding classes dynamically for orchestration
+
+Created By: Tanvi Dongaonkar
+Date: 
+Modified By:
+Reason:
+Example:
+Used by A2AAgentFactory and supervisor agents to fetch agent metadata and instantiate agents 
+like LogAnalysisAgent, TestCaseAgent, or EmailAgent based on definitions in `agent_cards.json`.
+"""
+
 import json
 import os
 import importlib

@@ -1,4 +1,24 @@
 
+"""
+Description:
+A dynamic tool execution manager for AgenticAI workflows that handles tools with varying input signatures. 
+It resolves tool parameters from both the provided arguments and the shared agent state, executes the tool, 
+and updates the shared state with the results.
+
+Key Features:
+- Dynamically inspects tool signatures to map inputs from kwargs or shared state.
+- Executes tools and captures results.
+- Updates a shared state dictionary with tool outputs while preserving existing entries.
+- Provides input resolution, and state updates.
+
+Created By: Tanvi Dongaonkar
+Date:
+Modified By:
+Reason:
+Example:
+Used in agent_executor workflows to orchestrate tool calls (e.g., memory access, RAG querying, test script generation) and 
+maintain consistent shared state across multi-step agent operations.
+"""
 
 
 from typing import Optional, Dict, Any, List

@@ -1,3 +1,23 @@
+"""
+Description:
+Central tool registry for AgenticAI workflows that discovers, registers, Tools for agent use.
+ It enables dynamic lookup and invocation of tools such as parsing, memory management, RAG queries,
+and email sending within agent workflows.
+
+Key Features:
+- Automatically discovers and imports tool modules from the 'tools' package.
+- Registers callable functions decorated with @tool in a global registry.
+- Provides access to all registered tools via get_all_registered_tools().
+- Prevents duplicate registrations and logs registration events.
+- Supports dynamic tool invocation by agents for context-aware reasoning.
+
+Created By: Tanvi Dongaonkar
+Date:
+Modified By:
+Reason:
+Example:
+Used by agent_executor and ResearchGraph to dynamically access and execute tools like parse_file, send_email, create_vector_store, query_rag_store, load_memories, and save_memories for log analysis, test case generation, and script automation workflows.
+"""
 
 
 import os

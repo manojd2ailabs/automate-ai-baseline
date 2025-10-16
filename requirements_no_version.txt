@@ -235,3 +235,8 @@ xxhash
 yarl
 zipp
 zstandard
+nuitka
+bs4
+scrapy
+selenium
+nltk

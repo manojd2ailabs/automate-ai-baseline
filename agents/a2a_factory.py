@@ -1,3 +1,19 @@
+"""
+Description:
+A2AAgentFactory is a centralized factory for dynamically creating and managing agents 
+within the global A2A system. It retrieves agent metadata from the global registry, 
+validates their status, and instantiates agent classes based on definitions in `agent_card.json`. 
+The factory also supports agent discovery and ID retrieval for orchestration by supervisor agents.
+
+Created By: Tanvi Dongaonkar.
+Date: 
+Modified By:
+Reason:
+Example:
+Used by the ResearchSupervisorAgent to dynamically instantiate sub-agents such as 
+LogAnalysisAgent, TestCaseAgent, or EmailAgent using metadata from `agent_card.json`.
+"""
+
 from agents.a2a_system import _global_registry
 
 class A2AAgentFactory:

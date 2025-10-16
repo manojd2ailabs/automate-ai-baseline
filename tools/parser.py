@@ -1,4 +1,19 @@
 
+"""
+Description:
+This module provides a generic file parsing tool for the AgenticAI workflow, handling PCAP and 
+TXT logs. It standardizes file preprocessing for downstream analysis by agents, using LogPatterns filters
+for keyword-based filtering and preserving important context.It Returns structured metadata including parsed file path, original path, and file type
+
+Created By: Tanvi Dongaonkar ,Pediredla Sai Ram
+Date: 
+Modified By:
+Reason:
+Example:
+Used by ResearchGraph, log analysis agents, and other workflows to preprocess incoming PCAP and 
+log files before semantic analysis, memory embedding, or test case generation.
+"""
+
 from langchain_core.tools import tool
 from typing import Dict, Any, List
 import os

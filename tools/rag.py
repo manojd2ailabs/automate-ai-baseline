@@ -1,4 +1,29 @@
 # rag_tool.py
+
+"""
+Description:
+RAG tool for AgenticAI workflows that performs semantic search over parsed PDF/TXT files, 
+creates vector stores, retrieves relevant context for queries, and optionally integrates 
+long-term agent memories for LLM-enhanced responses.
+
+Key Features:
+- Extracts and chunks text from PDFs/TXT for vector storage.
+- Performs similarity search to retrieve relevant context.
+- Enriches queries with past agent memories.
+- Supports file-based query storage.
+- Returns structured results including retrieved documents and LLM output.
+
+Created By:  Pediredla Sai Ram, Parise Hari Sai
+Date:
+Modified By:
+Reason:
+Example:
+Used by ResearchGraph and log/test case agents to semantically query preprocessed files and 
+generate AI-augmented insights.
+
+"""
+
+
 from langchain_core.tools import tool
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -11,7 +36,7 @@ from pathlib import Path
 from langchain.schema import Document
 from io import BytesIO
 from tools.registry import register_tool
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from langchain_ollama import ChatOllama
 import tempfile
 from langchain_community.llms.ollama import Ollama
@@ -175,85 +200,66 @@ def create_vector_store(parsed_path: str) -> Dict[str, Any]:
         }
 
 
-
+# UPDATED: Added 'retrieved_memories' to accept memories from the state
 @tool
-def query_rag_store(brief: str, vector_store_path: str = "",prompts: Dict[str, str] = None)-> Dict[str, Any]:
-    """Retrieve similar context for a given query from vector store."""
+def query_rag_store(brief: str, vector_store_path: str = "", prompts: Dict[str, str] = None, retrieved_memories: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Retrieve similar context for a given query from vector store, enhanced with long-term memories."""
     print("Retrieving context...")
-
+    print(f'[INFO: retrieved_memories]: {retrieved_memories}')
     query = brief.strip() if brief else ""
     prompt_text = (prompts or {}).get("custom_prompt") or (prompts or {}).get("Default")
-    print("&&&&&&&&&",prompt_text)
+    print(f'[INFO: prompt_text]: {prompt_text}')
     
-
     if not prompt_text:
-        return {
-            "success": False,
-            "message": "Tool Error: query_rag_store was called without a valid prompt.",
-            "query": query,
-            "results": [],
-            "response": "Could not generate a response because no prompt was provided to the RAG tool.",
-            "used_prompt": "None"
-        }
+        return {"success": False, "message": "Tool Error: query_rag_store was called without a valid prompt."}
     
-
-    
-
-    if not query or query.lower() == "none":
+    if not query:
         query = get_rag_query()
 
     if not query:
-        return {
-            "success": False,
-            "message": "No query provided. Please enter a RAG query.",
-            "query": "",
-            "results": [],
-            "used_prompt": prompt_text
-        }
+        return {"success": False, "message": "No query provided. Please enter a RAG query."}
 
     if not vector_store_path:
+        # Logic to find a default vector store...
         try:
-            vector_stores = [d for d in os.listdir(VECTOR_STORE_BASE_DIR)
-                             if os.path.isdir(os.path.join(VECTOR_STORE_BASE_DIR, d))]
-            if vector_stores:
-                vector_store_path = os.path.join(VECTOR_STORE_BASE_DIR, vector_stores[0])
-                print(f"Using first available vector store: {vector_store_path}")
-            else:
-                return {
-                    "success": False,
-                    "message": "No vector store found. Please create one first.",
-                    "query": query,
-                    "results": [],
-                    "used_prompt": prompt_text
-                }
+            vector_stores = [d for d in os.listdir(VECTOR_STORE_BASE_DIR) if os.path.isdir(os.path.join(VECTOR_STORE_BASE_DIR, d))]
+            if not vector_stores:
+                return {"success": False, "message": "No vector store found. Please create one first."}
+            vector_store_path = os.path.join(VECTOR_STORE_BASE_DIR, vector_stores[0])
         except Exception as e:
-            return {
-                "success": False,
-                "message": f"Error finding vector store: {e}",
-                "query": query,
-                "results": [],
-                "used_prompt": prompt_text
-            }
+            return {"success": False, "message": f"Error finding vector store: {e}"}
 
     try:
         model_name = 'sentence-transformers/all-mpnet-base-v2'
         embedder = HuggingFaceEmbeddings(model_name=model_name)
 
-        vector_store = Chroma(
-            persist_directory=vector_store_path,
-            embedding_function=embedder
-        )
+        vector_store = Chroma(persist_directory=vector_store_path, embedding_function=embedder)
 
         results = vector_store.similarity_search(query, k=3)
         context = " ".join(doc.page_content for doc in results)
+        print(context,"contextttt")
+        
 
-        # prompt = f"Use the following data: {context} to answer the query: {query}"
-        prompt = prompt_text.format(context=context, query=query)
+        # UPDATED: Format memories and add them to the prompt context
+        memory_context = ""
+        if retrieved_memories and isinstance(retrieved_memories, dict):
+            formatted_memories = []
+            for agent, findings in retrieved_memories.items():
+                if findings and findings.get('memories'):
+                    mem_str = "\n".join(f"- {mem}" for mem in findings['memories'])
+                    formatted_memories.append(f"Memories from {agent}:\n{mem_str}")
+            if formatted_memories:
+                memory_context = "### Relevant Past Memories\n" + "\n\n".join(formatted_memories) + "\n\n"
+        print(f'[INFO: memory_context]: {memory_context}')
+        # Combine memories with the RAG context for the final prompt
+        final_context = f"### Context from Provided File\n{context} {memory_context}"
+        print(f'[INFO:final_context ]: {final_context}')
+        
+        prompt = prompt_text.format(context=final_context, query=query)
         
         llm = Ollama(model="gemma3:12b")
-        # llm = ChatOllama(model="gemma3:12b", temperature=0)
         response = llm.invoke(prompt)
-        print(">>>>>>>>>",response)
+
         return {
             "success": True,
             "query": query,
@@ -264,13 +270,8 @@ def query_rag_store(brief: str, vector_store_path: str = "",prompts: Dict[str, s
         }
 
     except Exception as e:
-        return {
-            "success": False,
-            "message": f"Error querying vector store: {e}",
-            "query": query,
-            "results": [],
-            "used_prompt": prompt_text
-        }
+        return {"success": False, "message": f"Error querying vector store: {e}"}
+
 
 register_tool("create_vector_store", create_vector_store)
 register_tool("query_rag_store", query_rag_store)
